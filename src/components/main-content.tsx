@@ -1,18 +1,16 @@
 
 import { ThemeToggle } from "@/components/theme-toggle"
+import { MonitoringDashboard } from "@/components/dashboard/monitoring-dashboard"
 
 export function MainContent() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-6">
+    <div className="min-h-svh">
       {/* Theme Toggle */}
-      <div className="absolute top-6 right-6">
+      <div className="fixed top-6 right-6 z-50">
         <ThemeToggle />
       </div>
       
-
-      <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold">test</h1>
-      </div>
+      <MonitoringDashboard />
     </div>
   )
 } 
