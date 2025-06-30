@@ -134,6 +134,17 @@ export function GpuMonitor() {
                   {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
                 </div>
               </div>
+              {/* Frequency */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-green-600" />
+                  <span className="font-medium">Frequency</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {gpu.frequency !== null && gpu.frequency !== undefined ? `${gpu.frequency} MHz` : 'Unknown'}
+                </div>
+                <div className="text-sm text-muted-foreground">Reported by driver</div>
+              </div>
               {/* Temperature */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -186,6 +197,17 @@ export function GpuMonitor() {
                 <div className="text-sm text-muted-foreground">
                   {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
                 </div>
+              </div>
+              {/* Frequency */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-red-600" />
+                  <span className="font-medium">Frequency</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {gpu.frequency !== null && gpu.frequency !== undefined ? `${gpu.frequency} MHz` : 'Unknown'}
+                </div>
+                <div className="text-sm text-muted-foreground">Reported by driver</div>
               </div>
               {/* Temperature */}
               <div className="space-y-3">
@@ -264,20 +286,22 @@ export function GpuMonitor() {
                 <div className="text-2xl font-bold">{gpuInfo.raspberry_pi.gpu_memory}</div>
                 <div className="text-sm text-muted-foreground">Dedicated to GPU</div>
               </div>
-              {/* Frequency (parsed) */}
+              {/* Frequency (with source) */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-purple-600" />
                   <span className="font-medium">GPU Frequency</span>
                 </div>
                 <div className="text-2xl font-bold">
-                  {/* Parse and show only the gpu_freq value */}
-                  {(() => {
-                    const freqMatch = gpuInfo.raspberry_pi.frequency.match(/gpu_freq=([\d]+)/);
-                    return freqMatch ? `${freqMatch[1]} MHz` : 'Unknown';
-                  })()}
+                  {gpuInfo.raspberry_pi.gpu_freq !== undefined && gpuInfo.raspberry_pi.gpu_freq !== null
+                    ? `${gpuInfo.raspberry_pi.gpu_freq} MHz`
+                    : 'Unknown'}
                 </div>
-                <div className="text-sm text-muted-foreground">Current frequency</div>
+                <div className="text-sm text-muted-foreground">
+                  {gpuInfo.raspberry_pi.gpu_freq_source
+                    ? `Source: ${gpuInfo.raspberry_pi.gpu_freq_source}`
+                    : 'Current frequency'}
+                </div>
               </div>
               {/* Temperature */}
               {gpuInfo.raspberry_pi.temperature && (

@@ -149,6 +149,7 @@ export interface GPUInfo {
     memory_free: number;
     temperature: number;
     utilization: number;
+    frequency: number | null;
   }>;
   amd: Array<{
     id: string;
@@ -158,6 +159,7 @@ export interface GPUInfo {
     memory_free: number;
     temperature: number;
     utilization: number;
+    frequency: number | null;
   }>;
   integrated: Array<{
     name: string;
@@ -171,6 +173,8 @@ export interface GPUInfo {
     type: string;
     temperature: string;
     frequency: string;
+    gpu_freq?: number | null;
+    gpu_freq_source?: string | null;
   };
   general: Record<string, unknown>;
   opengl: string;
