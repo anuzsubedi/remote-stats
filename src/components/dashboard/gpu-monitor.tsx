@@ -37,9 +37,52 @@ export function GpuMonitor() {
     );
   }
 
+  // Build summary cards for only available GPU types
+  const summaryCards = [];
+  if (hasNvidiaGPU) {
+    summaryCards.push(
+      <div key="nvidia" className="rounded-xl border bg-gradient-to-br from-green-50 to-white p-6 flex flex-col items-center shadow-sm">
+        <Monitor className="h-7 w-7 text-green-600 mb-2" />
+        <div className="text-3xl font-bold text-green-700">{gpuInfo.nvidia.length}</div>
+        <div className="text-sm text-muted-foreground">NVIDIA GPU{gpuInfo.nvidia.length > 1 ? 's' : ''}</div>
+        <Badge variant="default" className="mt-2">NVIDIA</Badge>
+      </div>
+    );
+  }
+  if (hasAmdGPU) {
+    summaryCards.push(
+      <div key="amd" className="rounded-xl border bg-gradient-to-br from-red-50 to-white p-6 flex flex-col items-center shadow-sm">
+        <Monitor className="h-7 w-7 text-red-600 mb-2" />
+        <div className="text-3xl font-bold text-red-700">{gpuInfo.amd.length}</div>
+        <div className="text-sm text-muted-foreground">AMD GPU{gpuInfo.amd.length > 1 ? 's' : ''}</div>
+        <Badge variant="destructive" className="mt-2">AMD</Badge>
+      </div>
+    );
+  }
+  if (hasIntegratedGPU) {
+    summaryCards.push(
+      <div key="integrated" className="rounded-xl border bg-gradient-to-br from-blue-50 to-white p-6 flex flex-col items-center shadow-sm">
+        <Monitor className="h-7 w-7 text-blue-600 mb-2" />
+        <div className="text-3xl font-bold text-blue-700">{gpuInfo.integrated.length}</div>
+        <div className="text-sm text-muted-foreground">Integrated GPU{gpuInfo.integrated.length > 1 ? 's' : ''}</div>
+        <Badge variant="secondary" className="mt-2">Integrated</Badge>
+      </div>
+    );
+  }
+  if (hasPiGPU) {
+    summaryCards.push(
+      <div key="pi" className="rounded-xl border bg-gradient-to-br from-purple-50 to-white p-6 flex flex-col items-center shadow-sm">
+        <Monitor className="h-7 w-7 text-purple-600 mb-2" />
+        <div className="text-3xl font-bold text-purple-700">1</div>
+        <div className="text-sm text-muted-foreground">Raspberry Pi GPU</div>
+        <Badge variant="outline" className="mt-2">Pi</Badge>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* GPU Overview Summary */}
+    <div className="space-y-8">
+      {/* GPU Overview Summary - only available types */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -48,55 +91,39 @@ export function GpuMonitor() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{hasNvidiaGPU ? gpuInfo.nvidia.length : 0}</div>
-              <div className="text-sm text-muted-foreground">NVIDIA GPUs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{hasAmdGPU ? gpuInfo.amd.length : 0}</div>
-              <div className="text-sm text-muted-foreground">AMD GPUs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{hasIntegratedGPU ? gpuInfo.integrated.length : 0}</div>
-              <div className="text-sm text-muted-foreground">Integrated GPUs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{hasPiGPU ? 1 : 0}</div>
-              <div className="text-sm text-muted-foreground">Raspberry Pi GPU</div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {summaryCards}
           </div>
         </CardContent>
       </Card>
 
       {/* NVIDIA GPUs */}
       {hasNvidiaGPU && gpuInfo.nvidia.map((gpu, index) => (
-        <Card key={`nvidia-${index}`}>
+        <Card key={`nvidia-${index}`} className="border-green-200">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Monitor className="h-5 w-5" />
-                NVIDIA GPU {index + 1}: {gpu.name}
+                <Monitor className="h-5 w-5 text-green-600" />
+                <span className="font-semibold">NVIDIA GPU {index + 1}:</span> {gpu.name}
               </div>
               <Badge variant="default">NVIDIA</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Utilization */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
+                  <Activity className="h-4 w-4 text-green-600" />
                   <span className="font-medium">GPU Utilization</span>
                 </div>
                 <div className="text-3xl font-bold">{formatPercentage(gpu.utilization)}</div>
                 <Progress value={gpu.utilization} className="h-2" />
               </div>
-
               {/* Memory */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <MemoryStick className="h-4 w-4" />
+                  <MemoryStick className="h-4 w-4 text-green-600" />
                   <span className="font-medium">Memory Usage</span>
                 </div>
                 <div className="text-3xl font-bold">
@@ -107,11 +134,10 @@ export function GpuMonitor() {
                   {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
                 </div>
               </div>
-
               {/* Temperature */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Thermometer className="h-4 w-4" />
+                  <Thermometer className="h-4 w-4 text-green-600" />
                   <span className="font-medium">Temperature</span>
                 </div>
                 <div className="text-3xl font-bold">{formatTemperature(gpu.temperature)}</div>
@@ -126,32 +152,31 @@ export function GpuMonitor() {
 
       {/* AMD GPUs */}
       {hasAmdGPU && gpuInfo.amd.map((gpu, index) => (
-        <Card key={`amd-${index}`}>
+        <Card key={`amd-${index}`} className="border-red-200">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Monitor className="h-5 w-5" />
-                AMD GPU {index + 1}: {gpu.name}
+                <Monitor className="h-5 w-5 text-red-600" />
+                <span className="font-semibold">AMD GPU {index + 1}:</span> {gpu.name}
               </div>
               <Badge variant="destructive">AMD</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Utilization */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
+                  <Activity className="h-4 w-4 text-red-600" />
                   <span className="font-medium">GPU Utilization</span>
                 </div>
                 <div className="text-3xl font-bold">{formatPercentage(gpu.utilization)}</div>
                 <Progress value={gpu.utilization} className="h-2" />
               </div>
-
               {/* Memory */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <MemoryStick className="h-4 w-4" />
+                  <MemoryStick className="h-4 w-4 text-red-600" />
                   <span className="font-medium">Memory Usage</span>
                 </div>
                 <div className="text-3xl font-bold">
@@ -162,11 +187,10 @@ export function GpuMonitor() {
                   {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
                 </div>
               </div>
-
               {/* Temperature */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Thermometer className="h-4 w-4" />
+                  <Thermometer className="h-4 w-4 text-red-600" />
                   <span className="font-medium">Temperature</span>
                 </div>
                 <div className="text-3xl font-bold">{formatTemperature(gpu.temperature)}</div>
@@ -181,33 +205,32 @@ export function GpuMonitor() {
 
       {/* Integrated GPUs */}
       {hasIntegratedGPU && gpuInfo.integrated.map((gpu, index) => (
-        <Card key={`integrated-${index}`}>
+        <Card key={`integrated-${index}`} className="border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Monitor className="h-5 w-5" />
-                Integrated GPU: {gpu.name}
+                <Monitor className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold">Integrated GPU:</span> {gpu.name}
               </div>
               <Badge variant="secondary">Integrated</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Usage */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4" />
+                  <Activity className="h-4 w-4 text-blue-600" />
                   <span className="font-medium">GPU Usage</span>
                 </div>
                 <div className="text-3xl font-bold">{gpu.usage_percent}%</div>
                 <Progress value={parseFloat(gpu.usage_percent)} className="h-2" />
                 <div className="text-sm text-muted-foreground">Source: {gpu.source}</div>
               </div>
-
               {/* GPU Type */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4" />
+                  <Info className="h-4 w-4 text-blue-600" />
                   <span className="font-medium">GPU Type</span>
                 </div>
                 <div className="text-lg font-semibold">{gpu.type}</div>
@@ -220,45 +243,47 @@ export function GpuMonitor() {
 
       {/* Raspberry Pi GPU */}
       {hasPiGPU && gpuInfo.raspberry_pi && (
-        <Card>
+        <Card className="border-purple-200">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Monitor className="h-5 w-5" />
-                Raspberry Pi GPU: {gpuInfo.raspberry_pi.type}
+                <Monitor className="h-5 w-5 text-purple-600" />
+                <span className="font-semibold">Raspberry Pi GPU:</span> {gpuInfo.raspberry_pi.type}
               </div>
               <Badge variant="outline">Raspberry Pi</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* GPU Memory */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <MemoryStick className="h-4 w-4" />
+                  <MemoryStick className="h-4 w-4 text-purple-600" />
                   <span className="font-medium">GPU Memory</span>
                 </div>
                 <div className="text-2xl font-bold">{gpuInfo.raspberry_pi.gpu_memory}</div>
                 <div className="text-sm text-muted-foreground">Dedicated to GPU</div>
               </div>
-
-              {/* Frequency */}
+              {/* Frequency (parsed) */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4 text-purple-600" />
                   <span className="font-medium">GPU Frequency</span>
                 </div>
                 <div className="text-2xl font-bold">
-                  {gpuInfo.raspberry_pi.frequency.replace('gpu_freq=', '')}
+                  {/* Parse and show only the gpu_freq value */}
+                  {(() => {
+                    const freqMatch = gpuInfo.raspberry_pi.frequency.match(/gpu_freq=([\d]+)/);
+                    return freqMatch ? `${freqMatch[1]} MHz` : 'Unknown';
+                  })()}
                 </div>
                 <div className="text-sm text-muted-foreground">Current frequency</div>
               </div>
-
               {/* Temperature */}
               {gpuInfo.raspberry_pi.temperature && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Thermometer className="h-4 w-4" />
+                    <Thermometer className="h-4 w-4 text-purple-600" />
                     <span className="font-medium">Temperature</span>
                   </div>
                   <div className="text-2xl font-bold">{gpuInfo.raspberry_pi.temperature}</div>
@@ -266,6 +291,15 @@ export function GpuMonitor() {
                 </div>
               )}
             </div>
+            {/* Collapsible Advanced Config */}
+            {gpuInfo.raspberry_pi.frequency && (
+              <details className="mt-6">
+                <summary className="cursor-pointer font-medium text-purple-700">Advanced Pi GPU Config</summary>
+                <pre className="mt-2 p-3 bg-muted rounded text-xs overflow-x-auto border border-muted-foreground/10">
+                  {gpuInfo.raspberry_pi.frequency}
+                </pre>
+              </details>
+            )}
           </CardContent>
         </Card>
       )}
