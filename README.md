@@ -2,6 +2,8 @@
 
 A modern, responsive system monitoring dashboard built with React, TypeScript, and Python. Monitor your system's CPU, memory, storage, network, GPU, and processes in real-time with a beautiful, intuitive interface.
 
+**Note**: This frontend requires the Python Flask API from [anuzsubedi/remote-stats-server](https://github.com/anuzsubedi/remote-stats-server) to be running for full functionality.
+
 ![Overview Dashboard](https://i.imgur.com/DnHlIoD.png)
 
 ## Features
