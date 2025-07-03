@@ -204,12 +204,6 @@ function MonitoringDashboardContent({
           )}
 
           <div className="ml-auto flex items-center gap-2">
-            {isConnected && (
-              <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">
-                <div className="h-2 w-2 rounded-full bg-green-500 mr-2" />
-                Live
-              </Badge>
-            )}
             {error && (
               <Badge variant="destructive">
                 <WifiOff className="h-3 w-3 mr-1" />
