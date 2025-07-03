@@ -2,13 +2,11 @@ import { useMonitoringStore } from '@/stores/monitoring-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
 import { formatBytes, formatNetworkAddress } from '@/utils/formatters';
 import { 
   Wifi, 
   Network, 
   Globe, 
-  ArrowUpDown, 
   ArrowUp, 
   ArrowDown, 
   Activity,

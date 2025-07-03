@@ -11,7 +11,6 @@ import {
   Hash, 
   MemoryStick, 
   Cpu, 
-  Clock,
   HardDrive,
   BarChart3,
   Info,

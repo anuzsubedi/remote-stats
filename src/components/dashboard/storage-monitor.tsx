@@ -10,7 +10,6 @@ import {
   BarChart3,
   Info,
   Folder,
-  FileText,
   Clock,
   TrendingUp,
   TrendingDown,
