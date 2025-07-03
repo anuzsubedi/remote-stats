@@ -7,14 +7,14 @@ import { formatPercentage, formatBytes, getProcessStatusVariant } from '@/utils/
 import { 
   Activity, 
   Zap, 
-  Users, 
-  Hash, 
   MemoryStick, 
   Cpu, 
   HardDrive,
+  Hash,
+  Clock,
+  User,
   BarChart3,
-  Info,
-  Settings
+  Info
 } from 'lucide-react';
 
 export function ProcessesMonitor() {
@@ -50,7 +50,7 @@ export function ProcessesMonitor() {
 
   return (
     <div className="space-y-6">
-      {/* Process Overview */}
+      {/* Process Overview & Statistics */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export function ProcessesMonitor() {
             {/* Unique Users */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
+                <User className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Active Users</span>
               </div>
               <div className="text-3xl font-bold">{uniqueUsers}</div>
@@ -94,7 +94,7 @@ export function ProcessesMonitor() {
             {/* Combined Usage */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Settings className="h-4 w-4 text-muted-foreground" />
+                <Zap className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">System Load</span>
               </div>
               <div className="text-3xl font-bold">{formatPercentage(Math.min(totalCpuUsage, 100))}</div>
@@ -112,19 +112,19 @@ export function ProcessesMonitor() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-muted-foreground">Top CPU Usage</p>
+                <p className="text-muted-foreground" title="Highest per-process CPU usage as a percent of a single core. Not system-wide.">Top CPU Usage (per core)</p>
                 <p className="font-medium">{formatPercentage(Math.max(...topProcesses.top_cpu.map(p => p.cpu_percent)))}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Top Memory Usage</p>
+                <p className="text-muted-foreground" title="Highest per-process memory usage as a percent of total system memory.">Top Memory Usage</p>
                 <p className="font-medium">{formatPercentage(Math.max(...topProcesses.top_memory.map(p => p.memory_percent)))}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Average CPU</p>
+                <p className="text-muted-foreground" title="Average per-process CPU usage as a percent of a single core. Not system-wide.">Average CPU (per core)</p>
                 <p className="font-medium">{formatPercentage(totalCpuUsage / totalCpuProcesses)}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Average Memory</p>
+                <p className="text-muted-foreground" title="Average per-process memory usage as a percent of total system memory.">Average Memory</p>
                 <p className="font-medium">{formatPercentage(totalMemoryUsage / totalMemoryProcesses)}</p>
               </div>
             </div>
@@ -136,7 +136,7 @@ export function ProcessesMonitor() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
+            <Cpu className="h-5 w-5" />
             Top CPU Processes
           </CardTitle>
         </CardHeader>
@@ -151,7 +151,7 @@ export function ProcessesMonitor() {
                   </div>
                   <div>
                     <h4 className="font-semibold">{topProcesses.top_cpu[0].name}</h4>
-                    <p className="text-sm text-muted-foreground">Highest CPU Usage</p>
+                    <p className="text-sm text-muted-foreground">Highest CPU Usage Process</p>
                   </div>
                 </div>
                 <Badge variant="default" className="text-sm">
@@ -189,15 +189,19 @@ export function ProcessesMonitor() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Process</TableHead>
+                  <TableHead className="w-[250px]">Process</TableHead>
                   <TableHead>User</TableHead>
-                  <TableHead>CPU Usage</TableHead>
+                  <TableHead>
+                    <span title="CPU usage as a percent of a single core. On a multi-core system, values can exceed 100% if a process uses multiple cores.">
+                      CPU % (per core)
+                    </span>
+                  </TableHead>
                   <TableHead>Threads</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topProcesses.top_cpu.slice(0, 10).map((process) => (
+                {topProcesses.top_cpu.slice(0, 15).map((process) => (
                   <TableRow key={`cpu-${process.pid}`} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
@@ -216,7 +220,7 @@ export function ProcessesMonitor() {
                         <div className="flex items-center gap-2">
                           <div className="text-sm font-medium">{formatPercentage(process.cpu_percent)}</div>
                         </div>
-                        <Progress value={process.cpu_percent} className="h-1.5 w-16" />
+                        <Progress value={process.cpu_percent} className="h-1.5 w-20" />
                       </div>
                     </TableCell>
                     <TableCell>
@@ -257,7 +261,7 @@ export function ProcessesMonitor() {
                   </div>
                   <div>
                     <h4 className="font-semibold">{topProcesses.top_memory[0].name}</h4>
-                    <p className="text-sm text-muted-foreground">Highest Memory Usage</p>
+                    <p className="text-sm text-muted-foreground">Highest Memory Usage Process</p>
                   </div>
                 </div>
                 <Badge variant="default" className="text-sm">
@@ -295,15 +299,19 @@ export function ProcessesMonitor() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Process</TableHead>
+                  <TableHead className="w-[250px]">Process</TableHead>
                   <TableHead>User</TableHead>
-                  <TableHead>Memory Usage</TableHead>
+                  <TableHead>
+                    <span title="Memory usage as a percent of total system memory.">
+                      Memory %
+                    </span>
+                  </TableHead>
                   <TableHead>Memory Size</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topProcesses.top_memory.slice(0, 10).map((process) => (
+                {topProcesses.top_memory.slice(0, 15).map((process) => (
                   <TableRow key={`memory-${process.pid}`} className="hover:bg-muted/50">
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-3">
@@ -322,7 +330,7 @@ export function ProcessesMonitor() {
                         <div className="flex items-center gap-2">
                           <div className="text-sm font-medium">{formatPercentage(process.memory_percent)}</div>
                         </div>
-                        <Progress value={process.memory_percent} className="h-1.5 w-16" />
+                        <Progress value={process.memory_percent} className="h-1.5 w-20" />
                       </div>
                     </TableCell>
                     <TableCell>
@@ -340,76 +348,6 @@ export function ProcessesMonitor() {
                 ))}
               </TableBody>
             </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Process Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Process Statistics
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Resource Distribution */}
-          <div>
-            <h4 className="text-sm font-medium mb-4">Resource Distribution</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* CPU Distribution */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">CPU Usage Distribution</span>
-                </div>
-                <div className="space-y-2">
-                  {topProcesses.top_cpu.slice(0, 5).map((process, index) => (
-                    <div key={`cpu-dist-${process.pid}`} className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-primary" style={{ opacity: 1 - (index * 0.15) }} />
-                      <div className="flex-1 text-sm">{process.name}</div>
-                      <div className="text-sm font-medium">{formatPercentage(process.cpu_percent)}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Memory Distribution */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <MemoryStick className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Memory Usage Distribution</span>
-                </div>
-                <div className="space-y-2">
-                  {topProcesses.top_memory.slice(0, 5).map((process, index) => (
-                    <div key={`mem-dist-${process.pid}`} className="flex items-center gap-3">
-                      <div className="w-2 h-2 rounded-full bg-primary" style={{ opacity: 1 - (index * 0.15) }} />
-                      <div className="flex-1 text-sm">{process.name}</div>
-                      <div className="text-sm font-medium">{formatPercentage(process.memory_percent)}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* System Summary */}
-          <div className="pt-6 border-t">
-            <h4 className="text-sm font-medium mb-4">System Summary</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">Total CPU Usage</p>
-                <p className="text-xl font-bold">{formatPercentage(Math.min(totalCpuUsage, 100))}</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">Total Memory Usage</p>
-                <p className="text-xl font-bold">{formatPercentage(totalMemoryUsage)}</p>
-              </div>
-              <div className="text-center p-4 rounded-lg bg-muted/50">
-                <p className="text-sm text-muted-foreground">Active Threads</p>
-                <p className="text-xl font-bold">{totalThreads}</p>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
