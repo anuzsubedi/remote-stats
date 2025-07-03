@@ -1,6 +1,7 @@
 "use client"
 
 import { useMonitoringStore } from "@/stores/monitoring-store"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { formatBytes, formatTemperature, formatPercentage } from "@/utils/formatters"
@@ -12,11 +13,11 @@ import {
   Zap,
   AlertCircle,
   Info,
-  Settings,
   Cpu,
   Activity,
   Shield,
   HardDrive,
+  BarChart3,
 } from "lucide-react"
 
 type RaspberryPiGpuInfo = {
@@ -53,17 +54,16 @@ export function GpuMonitor() {
 
   if (!hasAnyGPU) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-8">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-16 text-center shadow-xl border border-slate-200 dark:border-slate-800 max-w-2xl">
-          <div className="w-24 h-24 mx-auto mb-8 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center">
-            <AlertCircle className="h-12 w-12 text-slate-400" />
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">GPU Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground py-4">
+            No graphics hardware detected or no compatible graphics hardware is available on this system.
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">No Graphics Hardware Detected</h2>
-          <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-            No GPU information is available or no compatible graphics hardware is detected on this system.
-          </p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -141,663 +141,496 @@ export function GpuMonitor() {
   const temperature = piGpu?.temperature ? Number.parseFloat(piGpu.temperature.match(/([\d.]+)/)?.[1] || "0") : 0
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="p-8 space-y-8 max-w-7xl mx-auto">
-        {/* Hero Header */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="p-12">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <div className="w-20 h-20 bg-slate-900 dark:bg-white rounded-2xl flex items-center justify-center">
-                  <Monitor className="h-10 w-10 text-white dark:text-slate-900" />
-                </div>
-                <div>
-                  <h1 className="text-5xl font-bold text-slate-900 dark:text-white mb-2">Graphics Hardware</h1>
-                  <p className="text-xl text-slate-600 dark:text-slate-400">
-                    Real-time GPU monitoring and performance analytics
-                  </p>
-                </div>
+    <div className="space-y-6">
+      {/* GPU Overview & Specifications */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Monitor className="h-5 w-5" />
+            GPU Overview & Specifications
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Main Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Total GPUs */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Total GPUs</span>
               </div>
-              <div className="text-right">
-                <div className="text-6xl font-bold text-slate-900 dark:text-white">{totalGPUs}</div>
-                <div className="text-sm text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium">
-                  GPU{totalGPUs !== 1 ? "s" : ""} Active
+              <div className="text-3xl font-bold">{totalGPUs}</div>
+              <div className="text-xs text-muted-foreground">Active graphics devices</div>
+            </div>
+
+            {/* NVIDIA Count */}
+            {hasNvidiaGPU && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">NVIDIA</span>
                 </div>
+                <div className="text-3xl font-bold">{gpuInfo.nvidia.length}</div>
+                <Badge variant="secondary">Discrete</Badge>
+              </div>
+            )}
+
+            {/* AMD Count */}
+            {hasAmdGPU && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">AMD</span>
+                </div>
+                <div className="text-3xl font-bold">{gpuInfo.amd.length}</div>
+                <Badge variant="secondary">Radeon</Badge>
+              </div>
+            )}
+
+            {/* Integrated Count */}
+            {hasIntegratedGPU && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Cpu className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Integrated</span>
+                </div>
+                <div className="text-3xl font-bold">{gpuInfo.integrated.length}</div>
+                <Badge variant="secondary">Built-in</Badge>
+              </div>
+            )}
+
+            {/* Raspberry Pi GPU */}
+            {hasPiGPU && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Monitor className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Raspberry Pi</span>
+                </div>
+                <div className="text-3xl font-bold">1</div>
+                <Badge variant="secondary">VideoCore</Badge>
+              </div>
+            )}
+          </div>
+
+          {/* System Information */}
+          <div className="pt-6 border-t">
+            <div className="flex items-center gap-2 mb-4">
+              <Info className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Graphics Support</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="text-muted-foreground">OpenGL</p>
+                <p className="font-medium">{gpuInfo?.opengl ? "Available" : "Not Available"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Hardware Acceleration</p>
+                <p className="font-medium">Enabled</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Total Devices</p>
+                <p className="font-medium">{totalGPUs}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Status</p>
+                <p className="font-medium">Active</p>
               </div>
             </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* GPU Type Overview */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {hasNvidiaGPU && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">{gpuInfo.nvidia.length}</div>
-              <div className="text-lg font-semibold text-slate-900 dark:text-white">NVIDIA</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">Graphics Cards</div>
-            </div>
-          )}
-
-          {hasAmdGPU && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="h-8 w-8 text-red-600 dark:text-red-400" />
-              </div>
-              <div className="text-4xl font-bold text-red-600 dark:text-red-400 mb-2">{gpuInfo.amd.length}</div>
-              <div className="text-lg font-semibold text-slate-900 dark:text-white">AMD</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">Graphics Cards</div>
-            </div>
-          )}
-
-          {hasIntegratedGPU && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Cpu className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                {gpuInfo.integrated.length}
-              </div>
-              <div className="text-lg font-semibold text-slate-900 dark:text-white">Integrated</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">Graphics</div>
-            </div>
-          )}
-
-          {hasPiGPU && (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 text-center">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Monitor className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">1</div>
-              <div className="text-lg font-semibold text-slate-900 dark:text-white">Raspberry Pi</div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">GPU</div>
-            </div>
-          )}
-        </div>
-
-        {/* NVIDIA GPUs */}
-        {hasNvidiaGPU && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="p-8 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-green-600 dark:text-green-400" />
+      {/* NVIDIA GPUs */}
+      {hasNvidiaGPU && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              NVIDIA Graphics Cards
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {gpuInfo.nvidia.map((gpu, index) => (
+              <div key={`nvidia-${index}`} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-semibold">{gpu.name}</h4>
+                  <Badge>GPU {index + 1}</Badge>
                 </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-900 dark:text-white">NVIDIA Graphics Cards</h2>
-                  <p className="text-slate-600 dark:text-slate-400">High-performance discrete graphics</p>
-                </div>
-              </div>
-            </div>
-            <div className="p-8 space-y-8">
-              {gpuInfo.nvidia.map((gpu, index) => (
-                <div key={`nvidia-${index}`} className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{gpu.name}</h3>
-                    <Badge className="px-4 py-2 text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                      GPU {index + 1}
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {/* GPU Usage */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Usage</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatPercentage(gpu.utilization)}</div>
+                    <Progress value={gpu.utilization} className="h-2" />
+                  </div>
+
+                  {/* Memory Usage */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MemoryStick className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Memory</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatPercentage((gpu.memory_used / gpu.memory_total) * 100)}</div>
+                    <Progress value={(gpu.memory_used / gpu.memory_total) * 100} className="h-2" />
+                    <div className="text-xs text-muted-foreground">
+                      {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
+                    </div>
+                  </div>
+
+                  {/* Clock Speed */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Clock</span>
+                    </div>
+                    <div className="text-3xl font-bold">{gpu.frequency !== null ? `${gpu.frequency} MHz` : "N/A"}</div>
+                    <div className="text-xs text-muted-foreground">Core frequency</div>
+                  </div>
+
+                  {/* Temperature */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Thermometer className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Temperature</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatTemperature(gpu.temperature)}</div>
+                    <Badge
+                      variant={
+                        gpu.temperature < 65 ? "secondary" : gpu.temperature < 80 ? "default" : "destructive"
+                      }
+                    >
+                      {gpu.temperature < 65 ? "Cool" : gpu.temperature < 80 ? "Warm" : "Hot"}
                     </Badge>
                   </div>
+                </div>
+                {index < gpuInfo.nvidia.length - 1 && <hr className="border-border" />}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">GPU Usage</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {formatPercentage(gpu.utilization)}
-                          </div>
-                        </div>
-                      </div>
-                      <Progress value={gpu.utilization} className="h-3" />
+      {/* AMD GPUs */}
+      {hasAmdGPU && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              AMD Graphics Cards
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {gpuInfo.amd.map((gpu, index) => (
+              <div key={`amd-${index}`} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-semibold">{gpu.name}</h4>
+                  <Badge>GPU {index + 1}</Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  {/* GPU Usage */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Usage</span>
                     </div>
+                    <div className="text-3xl font-bold">{formatPercentage(gpu.utilization)}</div>
+                    <Progress value={gpu.utilization} className="h-2" />
+                  </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                          <MemoryStick className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Memory Usage</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {formatPercentage((gpu.memory_used / gpu.memory_total) * 100)}
-                          </div>
-                        </div>
-                      </div>
-                      <Progress value={(gpu.memory_used / gpu.memory_total) * 100} className="h-3" />
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                        {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
-                      </div>
+                  {/* Memory Usage */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <MemoryStick className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Memory</span>
                     </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                          <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Clock Speed</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {gpu.frequency !== null ? `${gpu.frequency} MHz` : "N/A"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                          <Thermometer className="h-5 w-5 text-red-600 dark:text-red-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Temperature</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {formatTemperature(gpu.temperature)}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge
-                        className={`mt-2 ${
-                          gpu.temperature < 65
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                            : gpu.temperature < 80
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                        }`}
-                      >
-                        {gpu.temperature < 65 ? "Optimal" : gpu.temperature < 80 ? "Warm" : "Hot"}
-                      </Badge>
+                    <div className="text-3xl font-bold">{formatPercentage((gpu.memory_used / gpu.memory_total) * 100)}</div>
+                    <Progress value={(gpu.memory_used / gpu.memory_total) * 100} className="h-2" />
+                    <div className="text-xs text-muted-foreground">
+                      {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
                     </div>
                   </div>
-                  {index < gpuInfo.nvidia.length - 1 && <hr className="border-slate-200 dark:border-slate-800" />}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* AMD GPUs */}
-        {hasAmdGPU && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="p-8 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-xl flex items-center justify-center">
-                  <Zap className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-900 dark:text-white">AMD Graphics Cards</h2>
-                  <p className="text-slate-600 dark:text-slate-400">Radeon graphics performance</p>
-                </div>
-              </div>
-            </div>
-            <div className="p-8 space-y-8">
-              {gpuInfo.amd.map((gpu, index) => (
-                <div key={`amd-${index}`} className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{gpu.name}</h3>
-                    <Badge className="px-4 py-2 text-sm font-semibold bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
-                      GPU {index + 1}
+                  {/* Clock Speed */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Clock</span>
+                    </div>
+                    <div className="text-3xl font-bold">{gpu.frequency !== null ? `${gpu.frequency} MHz` : "N/A"}</div>
+                    <div className="text-xs text-muted-foreground">Core frequency</div>
+                  </div>
+
+                  {/* Temperature */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Thermometer className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Temperature</span>
+                    </div>
+                    <div className="text-3xl font-bold">{formatTemperature(gpu.temperature)}</div>
+                    <Badge
+                      variant={
+                        gpu.temperature < 70 ? "secondary" : gpu.temperature < 85 ? "default" : "destructive"
+                      }
+                    >
+                      {gpu.temperature < 70 ? "Cool" : gpu.temperature < 85 ? "Warm" : "Hot"}
                     </Badge>
                   </div>
-
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">GPU Usage</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {formatPercentage(gpu.utilization)}
-                          </div>
-                        </div>
-                      </div>
-                      <Progress value={gpu.utilization} className="h-3" />
-                    </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                          <MemoryStick className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Memory Usage</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {formatPercentage((gpu.memory_used / gpu.memory_total) * 100)}
-                          </div>
-                        </div>
-                      </div>
-                      <Progress value={(gpu.memory_used / gpu.memory_total) * 100} className="h-3" />
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                        {formatBytes(gpu.memory_used * 1024 * 1024)} / {formatBytes(gpu.memory_total * 1024 * 1024)}
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                          <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Clock Speed</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {gpu.frequency !== null ? `${gpu.frequency} MHz` : "N/A"}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                          <Thermometer className="h-5 w-5 text-red-600 dark:text-red-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Temperature</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                            {formatTemperature(gpu.temperature)}
-                          </div>
-                        </div>
-                      </div>
-                      <Badge
-                        className={`mt-2 ${
-                          gpu.temperature < 70
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                            : gpu.temperature < 85
-                              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                        }`}
-                      >
-                        {gpu.temperature < 70 ? "Optimal" : gpu.temperature < 85 ? "Warm" : "Hot"}
-                      </Badge>
-                    </div>
-                  </div>
-                  {index < gpuInfo.amd.length - 1 && <hr className="border-slate-200 dark:border-slate-800" />}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Integrated GPUs */}
-        {hasIntegratedGPU && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="p-8 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
-                  <Cpu className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Integrated Graphics</h2>
-                  <p className="text-slate-600 dark:text-slate-400">Built-in graphics processing</p>
-                </div>
+                {index < gpuInfo.amd.length - 1 && <hr className="border-border" />}
               </div>
-            </div>
-            <div className="p-8 space-y-8">
-              {gpuInfo.integrated.map((gpu, index) => (
-                <div key={`integrated-${index}`} className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{gpu.name}</h3>
-                    <Badge className="px-4 py-2 text-sm font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-                      {gpu.type}
-                    </Badge>
-                  </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                          <Activity className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">GPU Usage</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">{gpu.usage_percent}%</div>
-                        </div>
-                      </div>
-                      <Progress value={Number.parseFloat(gpu.usage_percent)} className="h-3" />
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">Source: {gpu.source}</div>
-                    </div>
-
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                      <div className="flex items-center space-x-3 mb-4">
-                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                          <Info className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Graphics Type</div>
-                          <div className="text-2xl font-bold text-slate-900 dark:text-white">Integrated</div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">Built into processor</div>
-                    </div>
-                  </div>
-                  {index < gpuInfo.integrated.length - 1 && <hr className="border-slate-200 dark:border-slate-800" />}
+      {/* Integrated GPUs */}
+      {hasIntegratedGPU && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cpu className="h-5 w-5" />
+              Integrated Graphics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {gpuInfo.integrated.map((gpu, index) => (
+              <div key={`integrated-${index}`} className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-semibold">{gpu.name}</h4>
+                  <Badge variant="secondary">{gpu.type}</Badge>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Raspberry Pi GPU */}
-        {hasPiGPU && piGpu && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-            <div className="p-8 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
-                    <Monitor className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* GPU Usage */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Usage</span>
+                    </div>
+                    <div className="text-3xl font-bold">{gpu.usage_percent}%</div>
+                    <Progress value={Number.parseFloat(gpu.usage_percent)} className="h-2" />
+                    <div className="text-xs text-muted-foreground">Source: {gpu.source}</div>
                   </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Raspberry Pi GPU</h2>
-                    <p className="text-slate-600 dark:text-slate-400">{piGpu.type}</p>
+
+                  {/* Graphics Type */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">Type</span>
+                    </div>
+                    <div className="text-3xl font-bold">Integrated</div>
+                    <div className="text-xs text-muted-foreground">Built into processor</div>
                   </div>
                 </div>
-                <Badge className="px-4 py-2 text-sm font-semibold bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
-                  VideoCore
+                {index < gpuInfo.integrated.length - 1 && <hr className="border-border" />}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Raspberry Pi GPU */}
+      {hasPiGPU && piGpu && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Raspberry Pi GPU
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Main Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {/* Temperature */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Thermometer className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Temperature</span>
+                </div>
+                <div className="text-3xl font-bold">{parsePiTemp(piGpu.temperature ?? undefined)}</div>
+                <Badge
+                  variant={
+                    temperature < 60 ? "secondary" : temperature < 80 ? "default" : "destructive"
+                  }
+                >
+                  {temperature < 60 ? "Cool" : temperature < 80 ? "Warm" : "Hot"}
+                </Badge>
+              </div>
+
+              {/* GPU Memory */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <HardDrive className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">GPU Memory</span>
+                </div>
+                <div className="text-3xl font-bold">{parsePiMem(piGpu?.gpu_memory ?? undefined)}</div>
+                <div className="text-xs text-muted-foreground">Dedicated VRAM</div>
+              </div>
+
+              {/* Core Clock */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Core Clock</span>
+                </div>
+                <div className="text-3xl font-bold">{parsePiClock(piGpu?.core_clock != null ? String(piGpu.core_clock) : undefined)}</div>
+                <div className="text-xs text-muted-foreground">Base frequency</div>
+              </div>
+
+              {/* System Status */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  {throttleStatus.severity === "good" ? (
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="text-sm font-medium">Status</span>
+                </div>
+                <div className="text-3xl font-bold">{throttleStatus.status}</div>
+                <Badge
+                  variant={
+                    throttleStatus.severity === "good" ? "secondary" : 
+                    throttleStatus.severity === "warning" ? "default" : "destructive"
+                  }
+                >
+                  {throttleStatus.code || "0x0"}
                 </Badge>
               </div>
             </div>
 
-            <div className="p-8 space-y-8">
-              {/* Key Metrics Dashboard */}
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                      <Thermometer className="h-5 w-5 text-red-600 dark:text-red-400" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Temperature</div>
-                      <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {parsePiTemp(piGpu.temperature ?? undefined)}
-                      </div>
-                    </div>
-                  </div>
-                  <Badge
-                    className={`${
-                      temperature < 60
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                        : temperature < 80
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                          : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                    }`}
-                  >
-                    {temperature < 60 ? "Optimal" : temperature < 80 ? "Warm" : "Critical"}
-                  </Badge>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                      <HardDrive className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-slate-600 dark:text-slate-400">GPU Memory</div>
-                      <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {parsePiMem(piGpu?.gpu_memory ?? undefined)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Dedicated VRAM</div>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
-                      <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-slate-600 dark:text-slate-400">Core Clock</div>
-                      <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                        {parsePiClock(piGpu?.core_clock != null ? String(piGpu.core_clock) : undefined)}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">Base frequency</div>
-                </div>
-
-                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        throttleStatus.severity === "good"
-                          ? "bg-green-100 dark:bg-green-900/20"
-                          : throttleStatus.severity === "warning"
-                            ? "bg-yellow-100 dark:bg-yellow-900/20"
-                            : "bg-red-100 dark:bg-red-900/20"
-                      }`}
-                    >
-                      {throttleStatus.severity === "good" ? (
-                        <Shield className={`h-5 w-5 text-green-600 dark:text-green-400`} />
-                      ) : (
-                        <AlertCircle
-                          className={`h-5 w-5 ${
-                            throttleStatus.severity === "warning"
-                              ? "text-yellow-600 dark:text-yellow-400"
-                              : "text-red-600 dark:text-red-400"
-                          }`}
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-slate-600 dark:text-slate-400">System Status</div>
-                      <div className="text-lg font-bold text-slate-900 dark:text-white">{throttleStatus.status}</div>
-                    </div>
-                  </div>
-                  <Badge
-                    className={`${
-                      throttleStatus.severity === "good"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                        : throttleStatus.severity === "warning"
-                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                          : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                    }`}
-                  >
-                    {throttleStatus.code || "0x0"}
-                  </Badge>
-                </div>
+            {/* Detailed Specifications */}
+            <div className="pt-6 border-t">
+              <div className="flex items-center gap-2 mb-4">
+                <Info className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Detailed Specifications</span>
               </div>
-
-              {/* Memory Allocation */}
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center space-x-3">
-                  <MemoryStick className="h-6 w-6" />
-                  <span>Memory Allocation</span>
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[
-                    { label: "GPU Memory", value: parsePiMem(piGpu?.gpu_memory ?? undefined), desc: "Graphics memory" },
-                    {
-                      label: "Relocatable",
-                      value: parsePiMem(piGpu?.reloc_memory ?? undefined),
-                      desc: "Relocatable memory",
-                    },
-                    { label: "Malloc", value: parsePiMem(piGpu?.malloc_memory ?? undefined), desc: "Malloc memory" },
-                    { label: "Total", value: parsePiMem(piGpu?.total_memory ?? undefined), desc: "Total memory" },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
-                      <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{item.label}</div>
-                      <div className="text-xl font-bold text-slate-900 dark:text-white mb-1">{item.value}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{item.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Clock Frequencies */}
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center space-x-3">
-                  <Clock className="h-6 w-6" />
-                  <span>Clock Frequencies</span>
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  {[
-                    {
-                      label: "Core",
-                      value: parsePiClock(piGpu?.core_clock != null ? String(piGpu.core_clock) : undefined),
-                    },
-                    {
-                      label: "V3D",
-                      value: parsePiClock(piGpu?.v3d_clock != null ? String(piGpu.v3d_clock) : undefined),
-                    },
-                    {
-                      label: "ISP",
-                      value: parsePiClock(piGpu?.isp_clock != null ? String(piGpu.isp_clock) : undefined),
-                    },
-                    {
-                      label: "HEVC",
-                      value: parsePiClock(piGpu?.hevc_clock != null ? String(piGpu.hevc_clock) : undefined),
-                    },
-                    {
-                      label: "H264",
-                      value: parsePiClock(piGpu?.h264_clock != null ? String(piGpu.h264_clock) : undefined),
-                    },
-                  ].map((clock) => (
-                    <div key={clock.label} className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 text-center">
-                      <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">{clock.label}</div>
-                      <div className="text-lg font-bold text-slate-900 dark:text-white">{clock.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* System Configuration */}
-              {extractConfigFields(piGpu.frequency).length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center space-x-3">
-                    <Settings className="h-6 w-6" />
-                    <span>System Configuration</span>
-                  </h3>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {extractConfigFields(piGpu.frequency).map(({ key, value }) => (
-                        <div
-                          key={key}
-                          className="bg-white dark:bg-slate-700/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700"
-                        >
-                          <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
-                            {key.replace(/_/g, " ")}
-                          </div>
-                          <div className="text-lg font-bold font-mono text-slate-900 dark:text-white">{value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-muted-foreground">GPU Type</p>
+                  <p className="font-medium">{piGpu.type}</p>
                 </div>
-              )}
-
-              {/* Additional Information */}
-              <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center space-x-3">
-                  <Info className="h-6 w-6" />
-                  <span>Additional Information</span>
-                </h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6">
-                    <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Voltage</div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                      {parsePiVoltage(piGpu?.voltage ?? undefined)}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">System voltage</div>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6">
-                    <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">GPU Type</div>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white">{piGpu.type}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">VideoCore architecture</div>
-                  </div>
+                <div>
+                  <p className="text-muted-foreground">Voltage</p>
+                  <p className="font-medium">{parsePiVoltage(piGpu?.voltage ?? undefined)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">V3D Clock</p>
+                  <p className="font-medium">{parsePiClock(piGpu?.v3d_clock != null ? String(piGpu.v3d_clock) : undefined)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">ISP Clock</p>
+                  <p className="font-medium">{parsePiClock(piGpu?.isp_clock != null ? String(piGpu.isp_clock) : undefined)}</p>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {/* System Summary */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="p-8 border-b border-slate-200 dark:border-slate-800">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center">
-                <Info className="h-6 w-6 text-slate-600 dark:text-slate-400" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-bold text-slate-900 dark:text-white">System Overview</h2>
-                <p className="text-slate-600 dark:text-slate-400">Graphics hardware summary and capabilities</p>
-              </div>
-            </div>
-          </div>
-          <div className="p-8">
-            <div className="grid gap-8 md:grid-cols-2">
-              <div className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Graphics Support</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">OpenGL Available</span>
-                    <Badge
-                      className={`${
-                        gpuInfo?.opengl
-                          ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                          : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400"
-                      }`}
-                    >
-                      {gpuInfo?.opengl ? "Yes" : "No"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">Hardware Acceleration</span>
-                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
-                      Enabled
-                    </Badge>
-                  </div>
+      {/* Advanced Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Advanced Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Memory Allocation (Pi GPU) */}
+          {hasPiGPU && piGpu && (
+            <div>
+              <h4 className="text-sm font-medium mb-4">Memory Allocation</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">GPU Memory</p>
+                  <p className="text-lg font-semibold">{parsePiMem(piGpu?.gpu_memory ?? undefined)}</p>
                 </div>
-              </div>
-
-              <div className="space-y-6">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Hardware Summary</h3>
-                <div className="space-y-4">
-                  {[
-                    {
-                      label: "NVIDIA GPUs",
-                      value: gpuInfo?.nvidia?.length || 0,
-                      color: "text-green-600 dark:text-green-400",
-                    },
-                    { label: "AMD GPUs", value: gpuInfo?.amd?.length || 0, color: "text-red-600 dark:text-red-400" },
-                    {
-                      label: "Integrated GPUs",
-                      value: gpuInfo?.integrated?.length || 0,
-                      color: "text-blue-600 dark:text-blue-400",
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl"
-                    >
-                      <span className="font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
-                      <span className={`font-bold text-2xl ${item.color}`}>{item.value}</span>
-                    </div>
-                  ))}
-                  <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                    <span className="font-medium text-slate-700 dark:text-slate-300">Raspberry Pi GPU</span>
-                    <Badge
-                      className={`${
-                        hasPiGPU
-                          ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400"
-                          : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400"
-                      }`}
-                    >
-                      {hasPiGPU ? "Available" : "Not Available"}
-                    </Badge>
-                  </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">Relocatable</p>
+                  <p className="text-lg font-semibold">{parsePiMem(piGpu?.reloc_memory ?? undefined)}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">Malloc</p>
+                  <p className="text-lg font-semibold">{parsePiMem(piGpu?.malloc_memory ?? undefined)}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">Total</p>
+                  <p className="text-lg font-semibold">{parsePiMem(piGpu?.total_memory ?? undefined)}</p>
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Clock Frequencies (Pi GPU) */}
+          {hasPiGPU && piGpu && (
+            <div className="pt-6 border-t">
+              <h4 className="text-sm font-medium mb-4">Clock Frequencies</h4>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">Core</p>
+                  <p className="text-lg font-semibold">{parsePiClock(piGpu?.core_clock != null ? String(piGpu.core_clock) : undefined)}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">V3D</p>
+                  <p className="text-lg font-semibold">{parsePiClock(piGpu?.v3d_clock != null ? String(piGpu.v3d_clock) : undefined)}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">ISP</p>
+                  <p className="text-lg font-semibold">{parsePiClock(piGpu?.isp_clock != null ? String(piGpu.isp_clock) : undefined)}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">HEVC</p>
+                  <p className="text-lg font-semibold">{parsePiClock(piGpu?.hevc_clock != null ? String(piGpu.hevc_clock) : undefined)}</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-sm text-muted-foreground">H264</p>
+                  <p className="text-lg font-semibold">{parsePiClock(piGpu?.h264_clock != null ? String(piGpu.h264_clock) : undefined)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* System Configuration (Pi GPU) */}
+          {hasPiGPU && piGpu && extractConfigFields(piGpu.frequency).length > 0 && (
+            <div className="pt-6 border-t">
+              <h4 className="text-sm font-medium mb-4">System Configuration</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {extractConfigFields(piGpu.frequency).map(({ key, value }) => (
+                  <div key={key} className="text-center p-3 rounded-lg bg-muted/50">
+                    <p className="text-sm text-muted-foreground">{key.replace(/_/g, " ")}</p>
+                    <p className="text-lg font-semibold font-mono">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* System Summary */}
+          <div className="pt-6 border-t">
+            <h4 className="text-sm font-medium mb-4">System Summary</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center p-4 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">NVIDIA GPUs</p>
+                <p className="text-xl font-bold">{gpuInfo?.nvidia?.length || 0}</p>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">AMD GPUs</p>
+                <p className="text-xl font-bold">{gpuInfo?.amd?.length || 0}</p>
+              </div>
+              <div className="text-center p-4 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">Integrated GPUs</p>
+                <p className="text-xl font-bold">{gpuInfo?.integrated?.length || 0}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
