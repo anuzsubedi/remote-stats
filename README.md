@@ -90,7 +90,19 @@ For optimal experience, we recommend running on native Linux systems or Raspberr
 
 **Note**: This frontend requires the Python Flask API from [anuzsubedi/remote-stats-server](https://github.com/anuzsubedi/remote-stats-server) to be running for full functionality.
 
+## Environment Variables & .env Usage
 
+This frontend uses a `.env` file for configuration. You can set the following variable:
+
+```
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+- `VITE_API_BASE_URL`: The base URL for the backend API (default: `http://localhost:5000`)
+
+**How to use:**
+1. Copy the sample above into a file named `.env` in the frontend root directory.
+2. The frontend will automatically use this value for API requests.
 
 ## Technology Stack
 
